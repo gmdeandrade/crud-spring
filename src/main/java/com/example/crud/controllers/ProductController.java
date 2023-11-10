@@ -1,11 +1,15 @@
 package com.example.crud.controllers;
 
+import com.example.crud.domain.product.Product;
 import com.example.crud.domain.product.ProductRepository;
+import com.example.crud.domain.product.RequestProductPost;
+import com.example.crud.domain.product.RequestProductPut;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/product")
@@ -16,5 +20,26 @@ public class ProductController {
     public ResponseEntity<?> getAllProducts(){
         var allProducts = repository.findAll();
         return ResponseEntity.ok(allProducts);
+    }
+
+    @PostMapping
+    public ResponseEntity<?> registerProduct(@RequestBody @Valid RequestProductPost data){
+        repository.save(new Product(data));
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateProduct(@RequestBody @Valid RequestProductPut data){
+        Optional<Product> optProduct = repository.findById(data.id());
+        if (optProduct.isPresent()){
+            Product product = optProduct.get();
+            if(data.name() != null)
+                product.setName(data.name());
+            if(data.price_in_cents() != null)
+                product.setPrice_in_cents(data.price_in_cents());
+            return ResponseEntity.ok(product);
+        }else{
+            return ResponseEntity.notFound().build();
+        }
     }
 }
